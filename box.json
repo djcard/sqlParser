@@ -1,0 +1,62 @@
+{
+    "name":"SQL Parser",
+    "author":"Dan Card <djcard@gmail.com>",
+    "homepage":"https://github.com/djcard/sqlParser",
+    "documentation":"https://github.com/djcard/sqlParser",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/djcard/sqlParser",
+    },
+    "bugs":"",
+    "slug":"sqlParser@dcar7191",
+    "shortDescription":"A CFML wrapper for the JSQLParser project",
+    "type":"modules",
+    "changelog":"",
+    "contributors":[],
+    "ignore":[
+        "**/.*",
+        "/test/",
+        "/tests/"
+    ],
+    "dependencies":{
+        "cbjavaloader":"^2.0.0"
+    },
+    "description":"",
+    "devDependencies":{},
+    "installPaths":{},
+    "instructions":"",
+    "keywords":[],
+    "license":[
+        {
+            "type":"",
+            "URL":""
+        }
+    ],
+    "location":"ForgeboxStorage",
+
+    "private":true,
+    "projectURL":"",
+    "scripts":{},
+    "testbox":{
+        "bundles":"",
+        "directory":"tests.specs",
+        "excludes":"",
+        "labels":"",
+        "options":{},
+        "recurse":true,
+        "reporter":"",
+        "runner":[
+            {
+                "default":""
+            }
+        ],
+        "testBundles":"",
+        "testSpecs":"",
+        "testSuites":"",
+        "verbose":true,
+        "watchDelay":500,
+        "watchPaths":"**.cfc"
+    },
+
+    "version":"0.0.0"
+}
