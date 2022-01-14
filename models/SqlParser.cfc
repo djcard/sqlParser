@@ -1,6 +1,9 @@
-component singleton threadsafe {
-
+	/***
+	* A wrapper for the JSQLparser project at https://github.com/JSQLParser/JSqlParser
+	**/
+component singleton {
 	property name="javaLoader" inject="loader@cbjavaloader";
+
 	typeStruct   = {
 		"net.sf.jsqlparser.statement.IfElseStatement"                      : parseIfElse,
 		"net.sf.jsqlparser.statement.insert.Insert"                        : parseInsert,
@@ -438,7 +441,7 @@ component singleton threadsafe {
 	}
 
 	/**
-	 * Is BCrypt loaded
+	 * Is Sqlparser loaded
 	 */
 	private boolean function isSqlParserLoaded() {
 		return !isNull( variables.sqlparser );
