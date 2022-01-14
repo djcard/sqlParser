@@ -1,35 +1,11 @@
-	/***
-	* A wrapper for the JSQLparser project at https://github.com/JSQLParser/JSqlParser
-	**/
+/***
+ * A wrapper for the JSQLparser project at https://github.com/JSQLParser/JSqlParser
+ **/
 component singleton {
+
 	property name="javaLoader" inject="loader@cbjavaloader";
 
-	function obtainFunc(className)
-	{
-		typeStruct = {
-			"net.sf.jsqlparser.statement.IfElseStatement" : parseIfElse,
-			"net.sf.jsqlparser.statement.insert.Insert" : parseInsert,
-			"net.sf.jsqlparser.schema.Table" : parseTable,
-			"net.sf.jsqlparser.schema.Column" : parseColumn,
-			"net.sf.jsqlparser.statement.update.Update" : parseUpdate,
-			"net.sf.jsqlparser.expression.operators.relational.ExpressionList" : parseExpressionList,
-			"net.sf.jsqlparser.expression.StringValue" : parseStringValue,
-			"java.util.ArrayList" : parseArrayList,
-			"net.sf.jsqlparser.expression.operators.relational.EqualsTo" : parseEqualsTo,
-			"net.sf.jsqlparser.expression.JdbcNamedParameter" : parseNamedParameter,
-			"net.sf.jsqlparser.statement.update.UpdateSet" : parseUpdateSet,
-			"net.sf.jsqlparser.expression.operators.conditional.AndExpression" : parseAndExpression,
-			"net.sf.jsqlparser.statement.select.Select" : parseSelect,
-			"net.sf.jsqlparser.statement.select.PlainSelect" : parsePlainSelect,
-			"net.sf.jsqlparser.statement.select.OrderByElement" : parseOrderByElement,
-			"net.sf.jsqlparser.statement.select.SelectExpressionItem" : parseSelectExpressionItem,
-			"net.sf.jsqlparser.expression.LongValue" : parseLongValue,
-			"net.sf.jsqlparser.statement.select.AllColumns" : parseAllColumns,
-			"net.sf.jsqlparser.statement.delete.Delete" : parseDelete
-		};
 
-		return typeStruct.keyExists(className) ? typeStruct[className] : "";
-	}
 
 	/**
 	 * Constructor
@@ -46,9 +22,40 @@ component singleton {
 	}
 
 	/**
-	* Parses multiple SQL statements by listToArray(";"). Submits each one separately to be parsed
-	* @sqlText The string SQL statements. Can be single is number of statements is unknown
-	*/
+	 * Determines which method should parse a submitted class Name
+	 * @className the name of the class of the about to rendered item.
+	 **/
+	private function obtainFunc( className ) {
+		var typeStruct = {
+			"net.sf.jsqlparser.statement.IfElseStatement"                      : parseIfElse,
+			"net.sf.jsqlparser.statement.insert.Insert"                        : parseInsert,
+			"net.sf.jsqlparser.schema.Table"                                   : parseTable,
+			"net.sf.jsqlparser.schema.Column"                                  : parseColumn,
+			"net.sf.jsqlparser.statement.update.Update"                        : parseUpdate,
+			"net.sf.jsqlparser.expression.operators.relational.ExpressionList" : parseExpressionList,
+			"net.sf.jsqlparser.expression.StringValue"                         : parseStringValue,
+			"java.util.ArrayList"                                              : parseArrayList,
+			"net.sf.jsqlparser.expression.operators.relational.EqualsTo"       : parseEqualsTo,
+			"net.sf.jsqlparser.expression.JdbcNamedParameter"                  : parseNamedParameter,
+			"net.sf.jsqlparser.statement.update.UpdateSet"                     : parseUpdateSet,
+			"net.sf.jsqlparser.expression.operators.conditional.AndExpression" : parseAndExpression,
+			"net.sf.jsqlparser.statement.select.Select"                        : parseSelect,
+			"net.sf.jsqlparser.statement.select.PlainSelect"                   : parsePlainSelect,
+			"net.sf.jsqlparser.statement.select.OrderByElement"                : parseOrderByElement,
+			"net.sf.jsqlparser.statement.select.SelectExpressionItem"          : parseSelectExpressionItem,
+			"net.sf.jsqlparser.expression.LongValue"                           : parseLongValue,
+			"net.sf.jsqlparser.statement.select.AllColumns"                    : parseAllColumns,
+			"net.sf.jsqlparser.statement.delete.Delete"                        : parseDelete
+		};
+
+		return !isNull( className ) && typeStruct.keyExists( className ) ? typeStruct[ className ] : "";
+	}
+
+
+	/**
+	 * Parses multiple SQL statements by listToArray(";"). Submits each one separately to be parsed
+	 * @sqlText The string SQL statements. Can be single is number of statements is unknown
+	 */
 
 	function parseStatements( required string sqlText ) {
 		var all = arguments.sqlText
@@ -61,51 +68,42 @@ component singleton {
 		return all;
 	}
 
-/**
-* Parses a single SQL statement
-* @sqlText The string SQL statements. Can be single is number of statements is unknown
-*/
+	/**
+	 * Parses a single SQL statement
+	 * @sqlText The string SQL statements. Can be single is number of statements is unknown
+	 */
 
-	function parseStatement(required string sqlText ) {
+	function parseStatement( required string sqlText ) {
 		var parsed    = parseSql( sqlText );
 		var className = parsed.getClass().getName();
-		var result = {};
-		var runFunc = obtainFunc(className);
-			try {
-				result = runFunc(parsed);
-			}
-			catch(any err){
-
-			}
+		var result    = {};
+		var runFunc   = obtainFunc( className );
+		try {
+			result = runFunc( parsed );
+		} catch ( any err ) {
+		}
 
 		return isStruct( result ) && result.keyExists( "data" ) ? result.data : result;
 	}
 
-/**
-* Performs the initial parsing of a SQL string into classes
-* @sqlText The string SQL statements. Can be single is number of statemtns is unknown
-*/
-	function parseSql(required string sqlText ) {
+	/**
+	 * Performs the initial parsing of a SQL string into classes
+	 * @sqlText The string SQL statements. Can be single is number of statemtns is unknown
+	 */
+	function parseSql( required string sqlText ) {
 		return variables.sqlparser.parse( sqlText );
 	}
 
-
-	function doParse( any stmt, boolean label = false ) {
+/**
+ * Handles the recusion and point of focus for the process
+ * @stmt The object which is being parsed at the moment
+ */
+	private function doParse( any stmt ) {
 		if ( isNull( stmt ) ) {
 			return;
 		}
 
-		var parsed = (
-			isSimpleValue( stmt )
-			 ? arguments.stmt
-			 : typeStruct.keyExists( stmt.getClass().getName() )
-			 ? typeStruct[ stmt.getClass().getName() ]( stmt )
-			 : isStruct( stmt )
-			 ? parseStruct( stmt )
-			 : isArray( stmt )
-			 ? parseArray( stmt, label )
-			 : arguments.stmt
-		);
+		var parsed = obtainParsingObject( stmt );
 
 		if ( !isNull( parsed ) ) {
 			if ( isStruct( parsed ) && parsed.keyExists( "terminal" ) && !parsed.terminal ) {
@@ -119,6 +117,27 @@ component singleton {
 			}
 		}
 		return arguments.stmt;
+	}
+
+/**
+* Determines the method which is going to parse the submitted object
+* @stmt The object which is being parsed at the moment
+*/
+	private function obtainParsingObject( stmt ) {
+		if ( isNull( stmt ) ) {
+			return;
+		}
+		return (
+			isSimpleValue( stmt )
+			 ? arguments.stmt
+			 : !isSimpleValue( obtainFunc( stmt.getClass().getName() ) )
+				 ? obtainFunc( stmt.getClass().getName() )( stmt )
+				 : isStruct( stmt )
+					 ? parseStruct( stmt )
+					 : isArray( stmt )
+						 ? parseArray( stmt )
+						 : arguments.stmt
+		);
 	}
 
 	function parseArrayList( arrListObj ) {
@@ -149,6 +168,10 @@ component singleton {
 		};
 	}
 
+/**
+ * Parses a struct by looping over its keys and sending each node to doParse
+ * @arr The array being parsed
+ */
 	function parseStruct( item ) {
 		var retme = {};
 		item.keyArray()
@@ -164,7 +187,11 @@ component singleton {
 		};
 	}
 
-	function parseArray( arr ) {
+/**
+ * Parses an array by mapping over it and sending each key to doParse
+ * @arr The array being parsed
+ */
+	private function parseArray( arr ) {
 		var retme = arr.map( function( item ) {
 			return {
 				"data"     : doParse( item ),
@@ -175,7 +202,7 @@ component singleton {
 		return retme;
 	}
 
-	function parseColumn( colObj ) {
+	private function parseColumn( colObj ) {
 		return {
 			"data" : {
 				"name"     : colObj.getColumnName(),
@@ -188,7 +215,7 @@ component singleton {
 		};
 	}
 
-	function parseIfElse( ifElseObj ) {
+	private function parseIfElse( ifElseObj ) {
 		return {
 			data : {
 				"if"       : doParse( ifElseObj.getIfStatement() ),
@@ -446,28 +473,27 @@ component singleton {
 		}
 	}
 
-	public any function loadSQLParserElement(required string className) {
-		var retme=""
+	public any function loadSQLParserElement( required string className ) {
+		var retme = ""
 		try {
 			retme = createObject( "java", arguments.className );
 		} catch ( any error ) {
 			try {
 				retme = variables.javaLoader.create( "net.sf.jsqlparser.parser.CCJSqlParserUtil" );
-			}
-			catch(any err){
+			} catch ( any err ) {
 				throw(
-				type   : "ClassNotFoundException",
-				message: "#className# not successfully loaded.  jsqlparser-4.3.jar must be present in the ColdFusion classpath or at the setting javaloader_libpath.  No operations are available."
+					type   : "ClassNotFoundException",
+					message: "#className# not successfully loaded.  jsqlparser-4.3.jar must be present in the ColdFusion classpath or at the setting javaloader_libpath.  No operations are available."
 				);
 			}
 		}
-	return retme;
+		return retme;
 	}
 
 	/**
 	 * Try to load if java lib in CF Path
 	 */
-	private void function tryToLoadSqlParserFromClassPath(className="net.sf.jsqlparser.parser.CCJSqlParserUtil") {
+	private void function tryToLoadSqlParserFromClassPath( className = "net.sf.jsqlparser.parser.CCJSqlParserUtil" ) {
 		try {
 			variables.sqlparser = createObject( "java", arguments.className );
 		} catch ( any error ) {
