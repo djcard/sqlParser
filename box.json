@@ -7,7 +7,7 @@
         "type":"git",
         "URL":"https://github.com/djcard/sqlParser"
     },
-    "bugs":"",
+    "bugs":"https://github.com/djcard/sqlParser/issues",
     "slug":"sqlParser@dcar7191",
     "shortDescription":"A CFML wrapper for the JSQLParser project",
     "type":"modules",
