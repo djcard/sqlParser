@@ -4,27 +4,32 @@
 component singleton {
 	property name="javaLoader" inject="loader@cbjavaloader";
 
-	typeStruct   = {
-		"net.sf.jsqlparser.statement.IfElseStatement"                      : parseIfElse,
-		"net.sf.jsqlparser.statement.insert.Insert"                        : parseInsert,
-		"net.sf.jsqlparser.schema.Table"                                   : parseTable,
-		"net.sf.jsqlparser.schema.Column"                                  : parseColumn,
-		"net.sf.jsqlparser.statement.update.Update"                        : parseUpdate,
-		"net.sf.jsqlparser.expression.operators.relational.ExpressionList" : parseExpressionList,
-		"net.sf.jsqlparser.expression.StringValue"                         : parseStringValue,
-		"java.util.ArrayList"                                              : parseArrayList,
-		"net.sf.jsqlparser.expression.operators.relational.EqualsTo"       : parseEqualsTo,
-		"net.sf.jsqlparser.expression.JdbcNamedParameter"                  : parseNamedParameter,
-		"net.sf.jsqlparser.statement.update.UpdateSet"                     : parseUpdateSet,
-		"net.sf.jsqlparser.expression.operators.conditional.AndExpression" : parseAndExpression,
-		"net.sf.jsqlparser.statement.select.Select"                        : parseSelect,
-		"net.sf.jsqlparser.statement.select.PlainSelect"                   : parsePlainSelect,
-		"net.sf.jsqlparser.statement.select.OrderByElement"                : parseOrderByElement,
-		"net.sf.jsqlparser.statement.select.SelectExpressionItem"          : parseSelectExpressionItem,
-		"net.sf.jsqlparser.expression.LongValue"                           : parseLongValue,
-		"net.sf.jsqlparser.statement.select.AllColumns"                    : parseAllColumns,
-		"net.sf.jsqlparser.statement.delete.Delete"                        : parseDelete
-	};
+	function obtainFunc(className)
+	{
+		typeStruct = {
+			"net.sf.jsqlparser.statement.IfElseStatement" : parseIfElse,
+			"net.sf.jsqlparser.statement.insert.Insert" : parseInsert,
+			"net.sf.jsqlparser.schema.Table" : parseTable,
+			"net.sf.jsqlparser.schema.Column" : parseColumn,
+			"net.sf.jsqlparser.statement.update.Update" : parseUpdate,
+			"net.sf.jsqlparser.expression.operators.relational.ExpressionList" : parseExpressionList,
+			"net.sf.jsqlparser.expression.StringValue" : parseStringValue,
+			"java.util.ArrayList" : parseArrayList,
+			"net.sf.jsqlparser.expression.operators.relational.EqualsTo" : parseEqualsTo,
+			"net.sf.jsqlparser.expression.JdbcNamedParameter" : parseNamedParameter,
+			"net.sf.jsqlparser.statement.update.UpdateSet" : parseUpdateSet,
+			"net.sf.jsqlparser.expression.operators.conditional.AndExpression" : parseAndExpression,
+			"net.sf.jsqlparser.statement.select.Select" : parseSelect,
+			"net.sf.jsqlparser.statement.select.PlainSelect" : parsePlainSelect,
+			"net.sf.jsqlparser.statement.select.OrderByElement" : parseOrderByElement,
+			"net.sf.jsqlparser.statement.select.SelectExpressionItem" : parseSelectExpressionItem,
+			"net.sf.jsqlparser.expression.LongValue" : parseLongValue,
+			"net.sf.jsqlparser.statement.select.AllColumns" : parseAllColumns,
+			"net.sf.jsqlparser.statement.delete.Delete" : parseDelete
+		};
+
+		return typeStruct.keyExists(className) ? typeStruct[className] : "";
+	}
 
 	/**
 	 * Constructor
@@ -40,6 +45,11 @@ component singleton {
 		loadSQLParser();
 	}
 
+	/**
+	* Parses multiple SQL statements by listToArray(";"). Submits each one separately to be parsed
+	* @sqlText The string SQL statements. Can be single is number of statements is unknown
+	*/
+
 	function parseStatements( required string sqlText ) {
 		var all = arguments.sqlText
 			.listtoarray( ";", false )
@@ -51,17 +61,32 @@ component singleton {
 		return all;
 	}
 
-	function parseStatement( stmt ) {
-		var parsed    = parseSql( stmt );
+/**
+* Parses a single SQL statement
+* @sqlText The string SQL statements. Can be single is number of statements is unknown
+*/
+
+	function parseStatement(required string sqlText ) {
+		var parsed    = parseSql( sqlText );
 		var className = parsed.getClass().getName();
-		var runFunc   = typeStruct[ className ];
-		var result    = runFunc( parsed );
+		var result = {};
+		var runFunc = obtainFunc(className);
+			try {
+				result = runFunc(parsed);
+			}
+			catch(any err){
+
+			}
 
 		return isStruct( result ) && result.keyExists( "data" ) ? result.data : result;
 	}
 
-	function parseSql( stmt ) {
-		return variables.sqlparser.parse( stmt );
+/**
+* Performs the initial parsing of a SQL string into classes
+* @sqlText The string SQL statements. Can be single is number of statemtns is unknown
+*/
+	function parseSql(required string sqlText ) {
+		return variables.sqlparser.parse( sqlText );
 	}
 
 
@@ -293,7 +318,8 @@ component singleton {
 	function parseSelect( qSelObj ) {
 		return {
 			"data"     : doParse( qSelObj.getSelectBody() ),
-			"terminal" : true
+			"terminal" : true,
+			"nodeType" : "select"
 		};
 	}
 
@@ -420,12 +446,30 @@ component singleton {
 		}
 	}
 
+	public any function loadSQLParserElement(required string className) {
+		var retme=""
+		try {
+			retme = createObject( "java", arguments.className );
+		} catch ( any error ) {
+			try {
+				retme = variables.javaLoader.create( "net.sf.jsqlparser.parser.CCJSqlParserUtil" );
+			}
+			catch(any err){
+				throw(
+				type   : "ClassNotFoundException",
+				message: "#className# not successfully loaded.  jsqlparser-4.3.jar must be present in the ColdFusion classpath or at the setting javaloader_libpath.  No operations are available."
+				);
+			}
+		}
+	return retme;
+	}
+
 	/**
 	 * Try to load if java lib in CF Path
 	 */
-	private void function tryToLoadSqlParserFromClassPath() {
+	private void function tryToLoadSqlParserFromClassPath(className="net.sf.jsqlparser.parser.CCJSqlParserUtil") {
 		try {
-			variables.sqlparser = createObject( "java", "net.sf.jsqlparser.parser.CCJSqlParserUtil" );
+			variables.sqlparser = createObject( "java", arguments.className );
 		} catch ( any error ) {
 		}
 	}
