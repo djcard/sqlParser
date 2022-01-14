@@ -5,7 +5,7 @@
     "documentation":"https://github.com/djcard/sqlParser",
     "repository":{
         "type":"git",
-        "URL":"https://github.com/djcard/sqlParser",
+        "URL":"https://github.com/djcard/sqlParser"
     },
     "bugs":"",
     "slug":"sqlParser@dcar7191",
@@ -33,7 +33,6 @@
         }
     ],
     "location":"ForgeboxStorage",
-
     "private":true,
     "projectURL":"",
     "scripts":{},
@@ -57,6 +56,5 @@
         "watchDelay":500,
         "watchPaths":"**.cfc"
     },
-
-    "version":"0.0.0"
+    "version":"0.0.1"
 }
