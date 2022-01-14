@@ -16,7 +16,17 @@ install with CommandBox `box install sqlParser`
 
 Usage (TestBox Example)
 
-`var parsedSql = getInstance("SqlParser@SqlParser").parseStatements(sqlStatement(s));`
+`it("The sql should be parsable",function(){`
+
+`    var parsedSql = getInstance("SqlParser@SqlParser").parseStatements(oneOrMoreSqlStatements);
+    expect(parsedSql).tobetypeof("array");
+});`
+
+
+`				it(title  = "The sql should call from blah table ", labels = "", body   = function() {
+expect(parsedSql.from.name).tobe("blah");
+});`
+
 
 The result is an array with each index being one statemnt. 
 
