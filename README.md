@@ -18,12 +18,12 @@ Usage (TestBox Example)
 
 `it("The sql should be parsable",function(){`
 
-`    var parsedSql = getInstance("SqlParser@SqlParser").parseStatements(oneOrMoreSqlStatements);
+`var parsedSql = getInstance("SqlParser@SqlParser").parseStatements(oneOrMoreSqlStatements);
     expect(parsedSql).tobetypeof("array");
 });`
 
 
-`				it(title  = "The sql should call from blah table ", labels = "", body   = function() {
+`it(title  = "The sql should call from blah table ", labels = "", body   = function() {
 expect(parsedSql.from.name).tobe("blah");
 });`
 
@@ -32,7 +32,9 @@ The result is an array with each index being one statemnt.
 
 Notes: 
 1. If a nodeType has not been implemented yet, it will be in place but as a Java Class. If you do a writeDump() of your parsed statement, you'll see it.
-2. The jsqpparser-4.3.jar is included in the install in the lib folder. If nothing else, cbJavaLoader will attempt to load the parser at run time but you can also place the jar file in the "jars" folder of your Coldbox install and restart your server (if using CommandBox).
+   
+2. The jsqlpparser-4.3.jar is included in the lib folder. If nothing else, cbJavaLoader will attempt to load the parser at run time but you can also place the jar file in the "jars" folder of your Coldbox install and restart your server (if using CommandBox).
+
 For more information about using additional jars in your CommandBox sites see https://commandbox.ortusbooks.com/embedded-server/configuring-your-server/adding-custom-libs
    
 
